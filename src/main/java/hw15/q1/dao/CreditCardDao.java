@@ -1,17 +1,13 @@
 package hw15.q1.dao;
 
-import hw15.q1.entities.Account;
 import hw15.q1.entities.CreditCard;
 import hw15.q1.exception.DuplicateInputData;
 import hw15.q1.exception.InvalidCreditCardData;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import java.util.List;
 
-public class CreditCardDao implements BaseDao<CreditCard,Long> {
+public class CreditCardDao implements BaseDao<CreditCard, Integer> {
 
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("bank_application");
 
@@ -19,38 +15,45 @@ public class CreditCardDao implements BaseDao<CreditCard,Long> {
     public void save(CreditCard creditCard) {
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();
-        if(creditCardIsExist(creditCard)){
+        if (!entityIsExist(creditCard) && cardNumberChecker(creditCard.getNumber())) {
             entityManager.persist(creditCard);
             entityManager.getTransaction().commit();
-        }else
-            throw new DuplicateInputData("DuplicateInputDataException");
+        } else
+            throw new InvalidCreditCardData("InvalidCardData");
     }
 
     @Override
-    public void update(Long creditCardNumber, CreditCard newCreditCard) {
+    public void update(Integer id, CreditCard newCreditCard) {
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();
-        CreditCard oldCreditCard = entityManager.find(CreditCard.class, creditCardNumber);
+        CreditCard oldCreditCard = entityManager.find(CreditCard.class, id);
         oldCreditCard.setPassword(newCreditCard.getPassword());
         oldCreditCard.setCVV2(newCreditCard.getCVV2());
         entityManager.getTransaction().commit();
     }
 
-
     @Override
-    public void deleteByID(Long creditCardNumber) {
+    public void update(CreditCard entity) {
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();
-        CreditCard foundCreditCard = entityManager.find(CreditCard.class, creditCardNumber);
+        entityManager.merge(entity);
+        entityManager.getTransaction().commit();
+    }
+
+    @Override
+    public void deleteByID(Integer id) {
+        EntityManager entityManager = emf.createEntityManager();
+        entityManager.getTransaction().begin();
+        CreditCard foundCreditCard = entityManager.find(CreditCard.class, id);
         entityManager.remove(foundCreditCard);
         entityManager.getTransaction().commit();
     }
 
     @Override
-    public CreditCard loadById(Long creditCardNumber) {
+    public CreditCard loadById(Integer id) {
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();
-        return entityManager.find(CreditCard.class, creditCardNumber);
+        return entityManager.find(CreditCard.class, id);
     }
 
     @Override
@@ -62,56 +65,46 @@ public class CreditCardDao implements BaseDao<CreditCard,Long> {
 
     }
 
-    public void createTransaction(Long srcCardNumber,Long destCardNumber,Double amount){
-        if(transactionIsValid(srcCardNumber,destCardNumber,amount)){
-            EntityManager entityManager = emf.createEntityManager();
-            Account srcAccount = entityManager.find(Account.class, srcCardNumber);
-            Account destAccount = entityManager.find(Account.class, destCardNumber);
 
-            double updatedSrcCardBalance = loadById(srcCardNumber).getAccount().getBalance() - amount;
-            srcAccount.setBalance(updatedSrcCardBalance);
-            entityManager.merge(srcAccount);
-
-            double updatedDestCardBalance = loadById(destCardNumber).getAccount().getBalance() + amount;
-            destAccount.setBalance(updatedDestCardBalance);
-            entityManager.merge(destAccount);
-
-        }else
-            throw new InvalidCreditCardData("InvalidCreditCard");
-    }
-
-
-    private boolean transactionIsValid(Long srcCardNumber,Long destCardNumber,Double amount){
-        return (checkSrcAndDesCardsValidity(srcCardNumber,destCardNumber) &&
-                checkSufficientMoneyValidity(srcCardNumber,amount));
-    }
-
-    private boolean checkSrcAndDesCardsValidity(Long srcCardNumber,Long destCardNumber){
-
-        for (CreditCard creditCard : loadAll()) {
-            if(creditCard.getNumber().equals(srcCardNumber) && creditCard.getNumber().equals(destCardNumber))
-                return true;
-        }
-        return false;
-    }
-
-    private boolean checkSufficientMoneyValidity(Long srcCardNumber, Double amount){
-        CreditCard srcCard = loadById(srcCardNumber);
-         return srcCard.getAccount().getNumber() > amount;
-    }
-
-    private boolean creditCardIsExist(CreditCard creditCard){
+    @Override
+    public boolean entityIsExist(CreditCard creditCard) {
         for (CreditCard crdCard : loadAll()) {
-            if(crdCard.equals(creditCard))
+            if (crdCard.equals(creditCard))
                 return true;
         }
         return false;
     }
 
+    public boolean cardNumberChecker(Long number) {
+        int count = 0;
+        while (number != 0) {
+            number /= 10;
+            count++;
+        }
+        return (count == 9 || count == 12);
+    }
 
+    public CreditCard findCardByAccountId(Integer accId) {
+        EntityManager entityManager = emf.createEntityManager();
+        Query query = entityManager.createQuery("SELECT c FROM CreditCard c WHERE c.account.id= :accId");
+        return (CreditCard) query.setParameter("accId", accId).getSingleResult();
+    }
 
+    public CreditCard findCardByCardNumberAndPass(Long number, Integer password) {
+        EntityManager entityManager = emf.createEntityManager();
+        Query query = entityManager.createQuery("SELECT c FROM CreditCard c WHERE " +
+                "c.number= :cardNumber AND c.password= :cardPassword");
+        return (CreditCard) query.setParameter("cardNumber", number)
+                .setParameter("cardPassword", password).getSingleResult();
+    }
 
-
+    public CreditCard findCardByCardNumber(Long number) {
+        EntityManager entityManager = emf.createEntityManager();
+        Query query = entityManager.createQuery("SELECT c FROM CreditCard c WHERE " +
+                " c.number= :cardNumber ");
+        return (CreditCard) query.setParameter("cardNumber", number)
+                .getSingleResult();
+    }
 
 
 }

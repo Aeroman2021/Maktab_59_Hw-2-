@@ -10,16 +10,16 @@ public class BankManager implements BaseEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer number;
+    private Integer id;
 
-    @OneToOne
+    @OneToOne(mappedBy = "bankManager",cascade = CascadeType.ALL)
     private Branch branch;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "manager_id")
     private Set<Clerk> clerks;
 
-    public BankManager(Integer number, Branch branch) {
-        this.number = number;
+    public BankManager(Branch branch) {
         this.branch = branch;
         this.clerks = new HashSet<>();
     }
@@ -29,15 +29,14 @@ public class BankManager implements BaseEntity<Integer> {
         this.clerks = new HashSet<>();
     }
 
-
     @Override
-    public Integer getNumber() {
-        return number;
+    public Integer getId() {
+        return id;
     }
 
     @Override
-    public void setNumber(Integer number) {
-        this.number = number;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Branch getBranch() {
@@ -55,4 +54,6 @@ public class BankManager implements BaseEntity<Integer> {
     public boolean addClerks(Clerk clerk) {
         return clerks.add(clerk);
     }
+
+
 }

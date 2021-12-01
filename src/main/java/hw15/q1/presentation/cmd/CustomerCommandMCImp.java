@@ -1,7 +1,6 @@
 package hw15.q1.presentation.cmd;
 
 import hw15.q1.presentation.viewer.AccountViewer;
-import hw15.q1.presentation.viewer.CreditCardViewer;
 import hw15.q1.presentation.viewer.CustomerViewer;
 import hw15.q1.presentation.viewer.TransactionViewer;
 import hw15.q1.utilities.Input;
@@ -11,13 +10,11 @@ public class CustomerCommandMCImp implements MenuCommand {
 
     CustomerViewer customerViewer;
     AccountViewer accountViewer;
-    CreditCardViewer creditCardViewer;
     TransactionViewer transactionViewer;
 
     public CustomerCommandMCImp() {
         customerViewer = new CustomerViewer();
         accountViewer = new AccountViewer();
-        creditCardViewer = new CreditCardViewer();
         transactionViewer = new TransactionViewer();
     }
 

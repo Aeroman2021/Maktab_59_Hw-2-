@@ -8,8 +8,10 @@ import java.util.Set;
 @Entity
 @Table(name = "customers")
 @NamedQuery(name = "customer.findAll", query = "SELECT c FROM Customer c ")
-public class Customer implements BaseEntity<Integer> {
+@NamedQuery(name = "customer.findByUsrAndPass", query = "SELECT c FROM Customer c" +
+        " WHERE c.username= :username AND c.password= :password")
 
+public class Customer implements BaseEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -20,19 +22,32 @@ public class Customer implements BaseEntity<Integer> {
     private String username;
     private String password;
 
-    @OneToMany(mappedBy = "customer", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "customer_id")
     private Set<Account> accounts;
 
-    public Customer(Integer id, String firstname, String lastName, String sex, Integer age) {
-        this.id = id;
+    public Customer(String firstname, String lastName, String sex, Integer age, String username, String password) {
         this.firstname = firstname;
         this.lastName = lastName;
         this.sex = sex;
         this.age = age;
+        this.username = username;
+        this.password = password;
+        this.accounts = new HashSet<>();
     }
 
     public Customer() {
         this.accounts = new HashSet<>();
+    }
+
+    @Override
+    public Integer getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getFirstname() {
@@ -83,22 +98,13 @@ public class Customer implements BaseEntity<Integer> {
         this.password = password;
     }
 
-    @Override
-    public Integer getNumber() {
-        return id;
-    }
-
-    @Override
-    public void setNumber(Integer number) {
-        this.id = number;
-    }
 
     public Set<Account> getAccounts() {
         return accounts;
     }
 
     public void addAccounts(Account account) {
-        accounts.add(account);
+        this.accounts.add(account);
     }
 
     @Override
@@ -124,4 +130,6 @@ public class Customer implements BaseEntity<Integer> {
                 ", age=" + age +
                 '}';
     }
+
+
 }

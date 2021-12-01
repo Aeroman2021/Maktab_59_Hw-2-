@@ -13,23 +13,25 @@ public class Clerk implements BaseEntity<Integer> {
     @OneToOne(cascade = CascadeType.ALL)
     private Branch branch;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    private BankManager bankManager;
+//    @ManyToOne(cascade = CascadeType.ALL)
+//    private BankManager bankManager;
 
-    public Clerk(Integer id, Branch branch, BankManager bankManager) {
-        this.id = id;
+    public Clerk(Branch branch, BankManager bankManager) {
         this.branch = branch;
-        this.bankManager = bankManager;
+//        this.bankManager = bankManager;
+    }
+
+    public Clerk() {
     }
 
     @Override
-    public Integer getNumber() {
+    public Integer getId() {
         return id;
     }
 
     @Override
-    public void setNumber(Integer number) {
-        this.id = number;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Branch getBranch() {
@@ -40,11 +42,11 @@ public class Clerk implements BaseEntity<Integer> {
         this.branch = branch;
     }
 
-    public BankManager getBankManager() {
-        return bankManager;
-    }
-
-    public void setBankManager(BankManager bankManager) {
-        this.bankManager = bankManager;
-    }
+//    public BankManager getBankManager() {
+//        return bankManager;
+//    }
+//
+//    public void setBankManager(BankManager bankManager) {
+//        this.bankManager = bankManager;
+//    }
 }

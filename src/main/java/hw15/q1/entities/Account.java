@@ -1,29 +1,42 @@
 package hw15.q1.entities;
 
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "accounts")
-@NamedQuery(name = "account.findAll",query = "SELECT a from Account a")
+@Table(name = "account")
+@NamedQuery(name = "account.findAll", query = "SELECT a from Account a")
 public class Account implements BaseEntity<Integer> {
 
-
     @Id
-    @SequenceGenerator(name = "SeqGen", sequenceName = "mySeq", initialValue = 1000_000, allocationSize = 100)
-    @GeneratedValue(generator = "mySeqGen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     private Integer number;
 
-    private double balance;
+    private Double balance;
 
-    @ManyToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+    @ManyToOne(cascade = CascadeType.ALL)
     private Customer customer;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Branch branch;
+
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     private CreditCard creditCard;
+
+    public Account(Integer number, Double balance, Customer customer) {
+        this.number = number;
+        this.balance = balance;
+        this.customer = customer;
+    }
+
+    public Account(Integer number, Double balance, Branch branch) {
+        this.number = number;
+        this.balance = balance;
+        this.branch = branch;
+    }
 
     public Account(Integer number, double balance) {
         this.number = number;
@@ -34,13 +47,13 @@ public class Account implements BaseEntity<Integer> {
     }
 
     @Override
-    public Integer getNumber() {
-        return number;
+    public Integer getId() {
+        return id;
     }
 
     @Override
-    public void setNumber(Integer number) {
-        this.number = number;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public double getBalance() {
@@ -67,11 +80,29 @@ public class Account implements BaseEntity<Integer> {
         this.creditCard = creditCard;
     }
 
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
+
     @Override
     public String toString() {
-        return "Account{" +
-                "number=" + number +
+        return "Account {" +
+                "id=" + id +
+                ", accNumber=" + number +
                 ", balance=" + balance +
+                ", branch=" + branch +
                 '}';
     }
 
@@ -80,13 +111,11 @@ public class Account implements BaseEntity<Integer> {
         if (this == o) return true;
         if (!(o instanceof Account)) return false;
         Account account = (Account) o;
-        return Double.compare(account.getBalance(), getBalance()) == 0 && getNumber().equals(account.getNumber());
+        return getNumber().equals(account.getNumber());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getNumber(), getBalance());
+        return Objects.hash(getNumber(), getBranch());
     }
-
-
 }

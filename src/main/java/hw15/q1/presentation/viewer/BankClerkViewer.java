@@ -1,34 +1,42 @@
 package hw15.q1.presentation.viewer;
 
 import hw15.q1.entities.*;
+import hw15.q1.exception.DataNotFound;
 import hw15.q1.exception.NoSufficientMoney;
-import hw15.q1.manager.AccountManager;
-import hw15.q1.manager.CreditCardManager;
-import hw15.q1.manager.TransactionManager;
+import hw15.q1.manager.*;
 import hw15.q1.utilities.Input;
-import hw15.q1.utilities.NumberGenerator;
-
-import java.util.List;
-import java.util.Set;
 
 public class BankClerkViewer {
 
     AccountManager accountManager;
     CreditCardManager creditCardManager;
     TransactionManager transactionManager;
+    BranchManager branchManager;
+    CustomerManager customerManager;
+    Customer customer;
 
     public BankClerkViewer() {
         this.accountManager = new AccountManager();
         this.creditCardManager = new CreditCardManager();
         this.transactionManager = new TransactionManager();
+        this.branchManager = new BranchManager();
+        this.customerManager = new CustomerManager();
+        this.customer = new Customer();
     }
 
     public void createAccount(Customer customer) {
-        double balance = Input.getDoubleValue("Enter the balance for your account");
-        Account newAccount = new Account();
-        newAccount.setBalance(balance);
+        Double balance = Input.getDoubleValue("Enter the balance for your account");
+        Integer accNumber = Input.getInputValue("Enter account number");
+
+        Integer branchId = Input.getInputValue("Enter Branch id");
+        Branch branch = branchManager.loadById(branchId);
+        Account newAccount = new Account(accNumber, balance);
+        branch.addAccounts(newAccount);
+        branchManager.save(branch);
+
         customer.addAccounts(newAccount);
-        accountManager.save(newAccount);
+        customerManager.getBaseDao().update(customer);
+
     }
 
     public void updateAccount(Customer customer, Double balance) {
@@ -43,24 +51,24 @@ public class BankClerkViewer {
 
 
     public void createCreditCard(Customer customer) {
-        Long creditCardNumber = NumberGenerator.generateNumber();
+        Long number = Input.getLongValue("Enter credit card number");
         int password = Input.getInputValue("Enter four-digit Password");
         int CVV2 = Input.getInputValue("Enter four-digit CVV2");
+
+        System.out.println();
+        System.out.println("Information of your account is: ");
         customer.getAccounts().forEach(System.out::println);
 
-        int accountNumber = Input.getInputValue("Enter account Number");
-        Account foundAccount = findAccountByAccNumber(customer, accountNumber);
-        CreditCard creditCard = new CreditCard();
+        int id = Input.getInputValue("Enter account id");
+        Account foundAccount = findAccountById(customer, id);
+        CreditCard creditCard = new CreditCard(number, password, CVV2, null, foundAccount);
 
-        creditCard.setNumber(creditCardNumber);
-        creditCard.setPassword(password);
-        creditCard.setCVV2(CVV2);
-        foundAccount.setCreditCard(creditCard);
-        creditCardManager.createCreditCard(creditCard, creditCardNumber);
+        creditCard.setAccount(foundAccount);
+        creditCardManager.getBaseDao().update(creditCard);
     }
 
     public void updateCreditCard(Customer customer) {
-        Long creditCardNumber = Input.getLongValue("Enter credit card number");
+        int creditcardId = Input.getInputValue("Enter Creditcard id");
         int password = Input.getInputValue("Enter new four-digit Password");
         int CVV2 = Input.getInputValue("Enter new four-digit CVV2");
 
@@ -71,13 +79,12 @@ public class BankClerkViewer {
         newCreditCard.setPassword(password);
         newCreditCard.setCVV2(CVV2);
         foundAccount.setCreditCard(newCreditCard);
-        creditCardManager.update(creditCardNumber, newCreditCard);
+        creditCardManager.update(creditcardId, newCreditCard);
     }
 
-
     public void createTransaction(Customer customer) {
-        int choice = 0;
-        while (choice != 4) {
+        boolean continueTransaction = true;
+        while (continueTransaction) {
             System.out.println("""
                     1) Withdraw
                     2) Deposit
@@ -85,12 +92,13 @@ public class BankClerkViewer {
                     4) Back
                                   
                     """);
-            choice = Input.getInputValue(" Select a number");
+            int choice = Input.getInputValue(" Select a number");
 
             switch (choice) {
                 case 1 -> withdrawTransaction(customer);
                 case 2 -> depositTransaction(customer);
                 case 3 -> transferMoney(customer);
+                case 4 -> continueTransaction = false;
             }
         }
     }
@@ -98,108 +106,122 @@ public class BankClerkViewer {
 
     private void withdrawTransaction(Customer customer) {
 
-        Set<Account> accounts = customer.getAccounts();
-        accounts.forEach(a -> System.out.println(a.getCreditCard().getNumber()));
-        Long cardNumber = Input.getLongValue("Enter your card id");
-        double amount = Input.getDoubleValue("Enter amount");
+        Long cardNumber = Input.getLongValue("Enter your card number");
+        Integer password = Input.getInputValue("Enter your password");
+        CreditCard foundCard = creditCardManager.getBaseDao().findCardByCardNumberAndPass(cardNumber, password);
 
-        CreditCard creditCard = creditCardManager.loadById(cardNumber);
-        Account account = creditCard.getAccount();
-        double balance = account.getBalance();
-        if (balance > amount) {
-            balance = -amount;
-            account.setBalance(balance);
-            Transaction newTransaction = new Transaction();
-            newTransaction.setType(TransactionType.WITHDRAW);
-            newTransaction.setAmount(amount);
-            newTransaction.setDestAccNumber(cardNumber);
-            newTransaction.setSrcAccNumber(cardNumber);
-            transactionManager.save(newTransaction);
+        if (foundCard != null) {
+            double amount = Input.getDoubleValue("Enter amount");
+            Account account = foundCard.getAccount();
+            double balance = account.getBalance();
+            if (balance > amount) {
+                balance -= amount;
+                account.setBalance(balance);
+                accountManager.getBaseDao().update(account);
+
+                Transaction newTransaction = new Transaction();
+                newTransaction.setType("WITHDRAW");
+                newTransaction.setAmount(amount);
+                newTransaction.setDestAccNumber(account.getNumber());
+                newTransaction.setSrcAccNumber(account.getNumber());
+                newTransaction.setCreditCard(foundCard);
+                transactionManager.save(newTransaction);
+            } else
+                throw new NoSufficientMoney("NoSufficientMoneyExistInAccount");
         } else
-            throw new NoSufficientMoney("NoSufficientMoneyExistInAccount");
+            throw new DataNotFound("NoSuchCardExist");
     }
 
     public void depositTransaction(Customer customer) {
+        Long cardNumber = Input.getLongValue("Enter your card number");
+        Integer password = Input.getInputValue("Enter your password");
+        CreditCard foundCard = creditCardManager.getBaseDao().findCardByCardNumberAndPass(cardNumber, password);
 
-        Set<Account> accounts = customer.getAccounts();
-        accounts.forEach(a -> System.out.println(a.getCreditCard().getNumber()));
-        Long cardNumber = Input.getLongValue("Enter your card id");
-        double amount = Input.getDoubleValue("Enter amount");
+        if (foundCard != null) {
+            double amount = Input.getDoubleValue("Enter amount");
+            Account account = foundCard.getAccount();
+            double balance = account.getBalance();
 
-        CreditCard creditCard = creditCardManager.loadById(cardNumber);
-        Account account = creditCard.getAccount();
-        double balance = account.getBalance();
-        if (balance > amount) {
-            balance = +amount;
+            balance += amount;
             account.setBalance(balance);
+            accountManager.getBaseDao().update(account);
+
             Transaction newTransaction = new Transaction();
-            newTransaction.setType(TransactionType.DEPOSIT);
+            newTransaction.setType("DEPOSIT");
             newTransaction.setAmount(amount);
-            newTransaction.setDestAccNumber(cardNumber);
-            newTransaction.setSrcAccNumber(cardNumber);
+            newTransaction.setDestAccNumber(account.getNumber());
+            newTransaction.setSrcAccNumber(account.getNumber());
+            newTransaction.setCreditCard(foundCard);
             transactionManager.save(newTransaction);
         } else
-            throw new NoSufficientMoney("NoSufficientMoneyExistInAccount");
+            throw new DataNotFound("NoSuchCardExist");
     }
 
     public void transferMoney(Customer customer) {
 
-        Set<Account> accounts = customer.getAccounts();
-        accounts.forEach(a -> System.out.println(a.getCreditCard().getNumber()));
-        Long sourceCardNumber = Input.getLongValue("Enter your source card id");
-        CreditCard sourceCreditCard = creditCardManager.loadById(sourceCardNumber);
-        Account sourceAccount = sourceCreditCard.getAccount();
+        Long cardNumber = Input.getLongValue("Enter your card number");
+        Integer password = Input.getInputValue("Enter your password");
+        CreditCard srcCard = creditCardManager.getBaseDao().findCardByCardNumberAndPass(cardNumber, password);
 
-        Long destinationCardNumber = Input.getLongValue("Enter your source card id");
-        CreditCard destinationCreditCard = creditCardManager.loadById(destinationCardNumber);
-        Account destAccount = destinationCreditCard.getAccount();
+        if (srcCard != null) {
+            Long destCardNumber = Input.getLongValue("Enter destination card number");
+            CreditCard destCard = creditCardManager.getBaseDao().findCardByCardNumber(destCardNumber);
+            if (destCard != null) {
+                double amount = Input.getDoubleValue("Enter amount");
+                Account srcAccount = srcCard.getAccount();
+                double srcAccBalance = srcAccount.getBalance();
+                Account destAccount = destCard.getAccount();
+                double destAccBalance = destAccount.getBalance();
 
-        double amount = Input.getDoubleValue("Enter amount of money you want to transfer");
+                if (srcAccBalance > amount) {
+                    srcAccBalance -= amount + 600;
+                    srcAccount.setBalance(srcAccBalance);
+                    accountManager.getBaseDao().update(srcAccount);
+                    destAccBalance += amount;
+                    destAccount.setBalance(destAccBalance);
+                    accountManager.getBaseDao().update(destAccount);
 
-        double sourceAccountBalance = sourceAccount.getBalance();
-        double destAccountBalance = destAccount.getBalance();
-
-        if (sourceAccountBalance > amount) {
-            sourceAccountBalance = -(amount + 600);
-            destAccountBalance = +amount;
-
-            sourceAccount.setBalance(sourceAccountBalance);
-            destAccount.setBalance(destAccountBalance);
-            Transaction newTransaction = new Transaction();
-            newTransaction.setType(TransactionType.TRANSFER);
-            newTransaction.setAmount(amount);
-            newTransaction.setDestAccNumber(destinationCardNumber);
-            newTransaction.setSrcAccNumber(sourceCardNumber);
-            transactionManager.save(newTransaction);
+                    Transaction newTransaction = new Transaction();
+                    newTransaction.setType("TRANSFER");
+                    newTransaction.setAmount(amount);
+                    newTransaction.setSrcAccNumber(srcAccount.getNumber());
+                    newTransaction.setDestAccNumber(destAccount.getNumber());
+                    newTransaction.setCreditCard(srcCard);
+                    transactionManager.save(newTransaction);
+                } else
+                    throw new NoSufficientMoney("NoSufficientMoneyExistInAccount");
+            } else
+                throw new DataNotFound("NoSuchCardExist");
         } else
-            throw new NoSufficientMoney("NoSufficientMoneyExistInAccount");
-    }
-
-
-    public void loadTransactionByCustomerID() {
-
+            throw new DataNotFound("NoSuchCardExist");
     }
 
     public void printCardInformation(Customer customer) {
-        int accountNumber = Input.getInputValue("Enter account Number");
-        Account acc = findAccountByAccNumber(customer, accountNumber);
-        CreditCard creditCard = acc.getCreditCard();
-        System.out.println(creditCard);
-
+        int id = Input.getInputValue("Enter account id");
+        CreditCard card = creditCardManager.findCardByAccId(id);
+        System.out.println(card);
     }
 
-    public void printTransactionsByDate(Customer customer) {
-        int accountNumber = Input.getInputValue("Enter account Number");
-        Account acc = findAccountByAccNumber(customer, accountNumber);
-        CreditCard creditCard = acc.getCreditCard();
-        List<Transaction> transactions = creditCard.getTransactions();
-
-    }
+//    public void printTransactionsByDate(Customer customer) {
+//        int accountNumber = Input.getInputValue("Enter account Number");
+//        Account acc = findAccountByAccNumber(customer, accountNumber);
+//        CreditCard creditCard = acc.getCreditCard();
+//        List<Transaction> transactions = creditCard.getTransactions();
+//
+//    }
 
 
     private Account findAccountByAccNumber(Customer customer, int accNumber) {
         for (Account account : customer.getAccounts()) {
             if (account.getNumber() == accNumber)
+                return account;
+        }
+        return null;
+    }
+
+    private Account findAccountById(Customer customer, Integer id) {
+        for (Account account : customer.getAccounts()) {
+            if (account.getId().equals(id))
                 return account;
         }
         return null;

@@ -8,32 +8,39 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
+
 
 public class CustomerDao implements BaseDao<Customer, Integer> {
 
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("bank_application");
-
+    EntityManager em = emf.createEntityManager();
 
     @Override
     public void save(Customer newCustomer) {
-        EntityManager entityManager = emf.createEntityManager();
-        entityManager.getTransaction().begin();
-        if (!customerIsExist(newCustomer)) {
-            entityManager.persist(newCustomer);
-            entityManager.getTransaction().commit();
+        em.getTransaction().begin();
+        if (!entityIsExist(newCustomer)) {
+            em.persist(newCustomer);
+            em.getTransaction().commit();
         } else
             throw new DuplicateInputData("DuplicateInputDataException");
     }
 
     @Override
     public void update(Integer id, Customer newCustomer) {
-        EntityManager entityManager = emf.createEntityManager();
-        entityManager.getTransaction().begin();
-        Customer customer = entityManager.find(Customer.class, id);
+        em.getTransaction().begin();
+        Customer customer = em.find(Customer.class, id);
+    }
 
+    @Override
+    public void update(Customer newCustomer) {
+        em.getTransaction().begin();
+        em.merge(newCustomer);
+        em.getTransaction().commit();
     }
 
     @Override
@@ -48,17 +55,16 @@ public class CustomerDao implements BaseDao<Customer, Integer> {
 
     @Override
     public Customer loadById(Integer id) {
-        EntityManager entityManager = emf.createEntityManager();
-        entityManager.getTransaction().begin();
-        return entityManager.find(Customer.class, id);
+        em.getTransaction().begin();
+        return em.find(Customer.class, id);
     }
 
     @Override
     public List<Customer> loadAll() {
-        EntityManager entityManager = emf.createEntityManager();
-        TypedQuery<Customer> query = entityManager.createNamedQuery("customer.findAll", Customer.class);
+        TypedQuery<Customer> query = em.createNamedQuery("customer.findAll", Customer.class);
         return query.getResultList();
     }
+
 
     public void printAccountInformationById(Integer id) {
         EntityManager entityManager = emf.createEntityManager();
@@ -69,28 +75,27 @@ public class CustomerDao implements BaseDao<Customer, Integer> {
             System.out.println(account);
     }
 
-//    public void printAccountInformationById(Customer customer) {
-//        EntityManager entityManager = emf.createEntityManager();
-//        entityManager.getTransaction().begin();
-//        Customer customer = entityManager.find(Customer.class, id);
-//        Set<Account> accounts = customer.getAccounts();
-//        for (Account account : accounts)
-//            System.out.println(account);
-//    }
 
+    public Customer findByUserNameAndPassword(String username, String password) {
 
-    private boolean customerIsExist(Customer customer) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Customer> cq = cb.createQuery(Customer.class);
+        Root<Customer> customer = cq.from(Customer.class);
+        cq.where(cb.equal(customer.get("username"), cb.parameter(String.class, "username")),
+                cb.equal(customer.get("password"), cb.parameter(String.class, "password")));
+
+        TypedQuery<Customer> query = em.createQuery(cq);
+        query.setParameter("username",username);
+        query.setParameter("password",password);
+        return query.getSingleResult();
+    }
+
+    @Override
+    public boolean entityIsExist(Customer customer) {
         for (Customer cust : loadAll()) {
             if (cust.equals(customer))
                 return true;
         }
         return false;
-    }
-
-    public Customer findByUserNameAndPassword(String username, String password) {
-        EntityManager entityManager = emf.createEntityManager();
-        TypedQuery<Customer> customers = entityManager.createQuery("SELECT c FROM Customer c WHERE username=:username AND password=:password"
-                , Customer.class).setParameter(username, username).setParameter(password, password);
-        return customers.getResultList().get(0);
     }
 }

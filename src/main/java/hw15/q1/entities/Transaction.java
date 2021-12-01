@@ -14,20 +14,21 @@ public class Transaction implements BaseEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer number;
+    private Integer id;
 
-    private TransactionType type;
+    private String type;
     private double amount;
-    private Long srcAccNumber;
-    private Long destAccNumber;
+    private Integer srcAccNumber;
+    private Integer destAccNumber;
 
     @CreationTimestamp
     private Date transactionDate;
 
+    @ManyToOne
+    private CreditCard creditCard;
 
-    public Transaction(Integer number, TransactionType type, double amount,
-                       Long srcAccNumber, Long destAccNumber, Date transactionDate) {
-        this.number = number;
+    public Transaction(String type, double amount,
+                       Integer srcAccNumber, Integer destAccNumber, Date transactionDate,CreditCard card) {
         this.type = type;
         this.amount = amount;
         this.srcAccNumber = srcAccNumber;
@@ -38,23 +39,14 @@ public class Transaction implements BaseEntity<Integer> {
     public Transaction() {
     }
 
+    @Override
+    public Integer getId() {
+        return id;
+    }
 
     @Override
-    public Integer getNumber() {
-        return number;
-    }
-
-    @Override
-    public void setNumber(Integer number) {
-        this.number = number;
-    }
-
-    public TransactionType getType() {
-        return type;
-    }
-
-    public void setType(TransactionType type) {
-        this.type = type;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public double getAmount() {
@@ -65,19 +57,19 @@ public class Transaction implements BaseEntity<Integer> {
         this.amount = amount;
     }
 
-    public Long getSrcAccNumber() {
+    public Integer getSrcAccNumber() {
         return srcAccNumber;
     }
 
-    public void setSrcAccNumber(Long srcAccNumber) {
+    public void setSrcAccNumber(Integer srcAccNumber) {
         this.srcAccNumber = srcAccNumber;
     }
 
-    public Long getDestAccNumber() {
+    public Integer getDestAccNumber() {
         return destAccNumber;
     }
 
-    public void setDestAccNumber(Long destAccNumber) {
+    public void setDestAccNumber(Integer destAccNumber) {
         this.destAccNumber = destAccNumber;
     }
 
@@ -87,5 +79,21 @@ public class Transaction implements BaseEntity<Integer> {
 
     public void setTransactionDate(Date transactionDate) {
         this.transactionDate = transactionDate;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public CreditCard getCreditCard() {
+        return creditCard;
+    }
+
+    public void setCreditCard(CreditCard creditCard) {
+        this.creditCard = creditCard;
     }
 }

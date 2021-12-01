@@ -24,27 +24,21 @@ public class CustomerViewer {
 
 
     public void registerNewCustomer() {
-
-
+        System.out.println("Welcome to the Bank Application");
         String firstName = Input.getStringInputValue("Enter your firstName");
         String lastName = Input.getStringInputValue("Enter your lastName");
         String sex = Input.getStringInputValue("Enter your gender");
         int age = Input.getInputValue(" Enter your age");
         String username = Input.getStringInputValue("Enter username");
         String password = Input.getStringInputValue("Enter password");
-        Customer customer = new Customer(null, null, null, null, null);
-        customer.setFirstname(firstName);
-        customer.setLastName(lastName);
-        customer.setSex(sex);
-        customer.setAge(age);
-        customer.setUsername(username);
-        customer.setPassword(password);
+        Customer customer = new Customer(firstName, lastName, sex, age, username, password);
         customerManager.save(customer);
+        login();
     }
 
     public void login() {
-        String username = Input.getStringInputValue("Enter username");
-        String password = Input.getStringInputValue("Enter password");
+        String username = Input.getStringInputValue("Enter your username");
+        String password = Input.getStringInputValue("Enter your password");
         Customer customer = customerManager.login(username, password);
         if (customer != null) {
             AfterLoginMenu(customer);
@@ -54,22 +48,23 @@ public class CustomerViewer {
 
     public void AfterLoginMenu(Customer customer) {
 
-        int choice = 0;
-        while (choice != 9) {
+        boolean continueSelect = false;
+        while (!continueSelect) {
+            System.out.println("=========================");
             System.out.println("""
-                    Please select an action
                     1) Update your Information
                     2) Print your information
-                    3) Print your account information
+                    3) Create a new Account
                     4) Update the account information
                     5) Print account information
                     6) Apply for credit card
                     7) Update credit card information
-                    8) Create transaction
-                    9) Back
-                                  
+                    8) Print credit card information
+                    9) Create transaction
+                    10) Print list of transaction
+                    11) Back
                     """);
-            choice = Input.getInputValue("Select a Number");
+            int choice = Input.getInputValue("Select a Number");
             switch (choice) {
                 case 1 -> updateCustomerInformation(customer);
                 case 2 -> loadCustomerInformationById(customer);
@@ -78,17 +73,17 @@ public class CustomerViewer {
                 case 5 -> printAccountInformation(customer);
                 case 6 -> applyCreditCard(customer);
                 case 7 -> updateCreditCardInformation(customer);
-                case 8 -> getPrintCreditCardInformation(customer);
+                case 8 -> PrintCreditCardInformation(customer);
                 case 9 -> createTransaction(customer);
-                case 10 -> printListOfTransaction(customer);
-
+//                case 10 -> printListOfTransaction(customer);
+                case 11 -> continueSelect = true;
             }
         }
     }
 
 
     private void updateCustomerInformation(Customer customer) {
-        Integer id = customer.getNumber();
+        Integer id = customer.getId();
         customerManager.update(id, customer);
     }
 
@@ -99,7 +94,6 @@ public class CustomerViewer {
 
     private void loadCustomerInformationById(Customer customer) {
         System.out.println(customer);
-
     }
 
     private void printAccountInformation(Customer customer) {
@@ -111,9 +105,6 @@ public class CustomerViewer {
         return customerManager.loadAll();
     }
 
-    private void createTransaction(Customer customer) {
-        bankClerkViewer.createTransaction(customer);
-    }
 
     private void createNewAccount(Customer customer) {
         bankClerkViewer.createAccount(customer);
@@ -121,7 +112,6 @@ public class CustomerViewer {
 
     private void updateAccountInformation(Customer customer, Double amount) {
         bankClerkViewer.updateAccount(customer, amount);
-
     }
 
     private void applyCreditCard(Customer customer) {
@@ -132,12 +122,15 @@ public class CustomerViewer {
         bankClerkViewer.updateCreditCard(customer);
     }
 
-    private void printListOfTransaction(Customer customer) {
-        bankClerkViewer.printTransactionsByDate(customer);
+    private void createTransaction(Customer customer) {
+        bankClerkViewer.createTransaction(customer);
     }
 
+//    private void printListOfTransaction(Customer customer) {
+//        bankClerkViewer.printTransactionsByDate(customer);
+//    }
 
-    private void getPrintCreditCardInformation(Customer customer) {
+    private void PrintCreditCardInformation(Customer customer) {
         bankClerkViewer.printCardInformation(customer);
     }
 

@@ -34,8 +34,6 @@ public class AccountViewer extends AccountManager {
         int accNumber = Input.getInputValue("Enter account number");
         Account foundAccount = findAccountByAccNumber(customer, accNumber);
 
-
-
     }
 
     private Account findAccountByAccNumber(Customer customer, int accNumber) {
@@ -62,8 +60,6 @@ public class AccountViewer extends AccountManager {
 //        System.out.println(accountManager.loadById(accNumber));
 //
 //    }
-
-
 
 
 }
