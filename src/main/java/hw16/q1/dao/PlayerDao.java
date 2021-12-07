@@ -81,7 +81,7 @@ public class PlayerDao implements BaseDao<Player, Integer> {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Player> c = cb.createQuery(Player.class);
         Root<Player> player = c.from(Player.class);
-        CriteriaQuery<Player> contract = c.orderBy(cb.asc(player.get("salary")));
+        CriteriaQuery<Player> contract = c.orderBy(cb.desc(player.get("salary")));
         TypedQuery<Player> query = em.createQuery(contract);
         return query.getResultList();
     }
@@ -90,9 +90,9 @@ public class PlayerDao implements BaseDao<Player, Integer> {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Player> c = cb.createQuery(Player.class);
         Root<Player> player = c.from(Player.class);
-        CriteriaQuery<Player> contract = c.orderBy(cb.asc(player.get("salary")));
+        CriteriaQuery<Player> contract = c.orderBy(cb.desc(player.get("salary")));
         TypedQuery<Player> query = em.createQuery(contract);
-        return query.getSingleResult();
+        return query.getResultList().get(0);
     }
 
 

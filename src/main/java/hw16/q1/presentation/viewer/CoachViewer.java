@@ -1,14 +1,13 @@
 package hw16.q1.presentation.viewer;
 
-import hw16.q1.entity.City;
+
 import hw16.q1.entity.Coach;
 import hw16.q1.entity.Team;
 import hw16.q1.manager.CoachManager;
 import hw16.q1.utility.EMFSigleton;
 import hw16.q1.utility.Input;
-
 import javax.persistence.EntityManager;
-import java.util.List;
+
 
 public class CoachViewer {
     CoachManager coachManager;
@@ -45,23 +44,26 @@ public class CoachViewer {
         coachManager.delete(id);
     }
 
-    public Coach loadCoachById() {
+    public void loadCoachById() {
         int id = Input.getInputValue("Enter coach id");
-        return coachManager.loadById(id);
+        System.out.println(coachManager.loadById(id));
     }
 
-    public List<Coach> loadAll() {
-        return coachManager.loadAll();
+    public void loadAll() {
+        for (Coach coach : coachManager.loadAll())
+            System.out.println(coach);
     }
 
     public void printCoachListBaseOnContract() {
         for (Coach coach : coachManager.printCoachListBasedOnContract())
-            System.out.println(coach);
+            System.out.println(coach.getLastName() + "->" + coach.getContract());
+
     }
 
     public void printTheMostPaidCoach(){
         Coach coach = coachManager.PrintMostPaidCoach();
-        System.out.println(coach);
+        System.out.println("The most paid coach is: ");
+        System.out.println(coach.getLastName() + " with " + coach.getContract() + " Contract");
     }
 
 }

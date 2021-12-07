@@ -38,7 +38,7 @@ public class CoachDao implements BaseDao<Coach, Integer> {
     public void delete(Integer id) {
         em.getTransaction().begin();
         Coach coach = em.find(Coach.class, id);
-        if (em.find(Coach.class, id) != null) {
+        if (coach != null) {
             em.remove(coach);
             em.getTransaction().commit();
         } else

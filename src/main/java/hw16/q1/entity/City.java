@@ -1,9 +1,11 @@
 package hw16.q1.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@NamedQuery(name = "city.loadAll",query = "SELECT c FROM City c")
 public class City implements BaseEntity<Integer> {
 
     @Id
@@ -61,6 +63,19 @@ public class City implements BaseEntity<Integer> {
 
     public void setStadiums(Set<Stadium> stadiums) {
         this.stadiums = stadiums;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof City)) return false;
+        City city = (City) o;
+        return getName().equals(city.getName()) && getTeams().equals(city.getTeams()) && getStadiums().equals(city.getStadiums());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getTeams(), getStadiums());
     }
 
     @Override

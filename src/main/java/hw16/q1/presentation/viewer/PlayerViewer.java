@@ -52,23 +52,25 @@ public class PlayerViewer {
         playerManager.delete(id);
     }
 
-    public Player loadPlayerById() {
+    public void loadPlayerById() {
         int id = Input.getInputValue("Enter the player id");
-        return playerManager.loadById(id);
+        System.out.println(playerManager.loadById(id));
     }
 
-    public List<Player> loadAllPlayers() {
-        return playerManager.loadAll();
+    public void loadAllPlayers() {
+        for (Player player : playerManager.loadAll())
+            System.out.println(player);
     }
 
     public void printPlayersListBaseOnContract() {
         for (Player player : playerManager.printListOfPlayersBasedOnSalary()) {
-            System.out.println(player);
+            System.out.println(player.getLastName() + " -> " + player.getSalary());
         }
     }
 
     public void printTheMostPaidPlayer() {
         Player player = playerManager.printTheMostPaidPlayer();
-        System.out.println(player);
+        System.out.println("the most paid player is: ");
+        System.out.println(player.getLastName() + " with " + player.getSalary() + " salary.");
     }
 }

@@ -37,9 +37,9 @@ public class CityMenuMCImpl implements MenuCommand {
             switch (selection) {
                 case 1 -> cityViewer.saveCity();
                 case 2 -> cityViewer.updateCity();
-                case 3 -> cityViewer.delteCity();
-//                case 4 -> cityViewer.loadCityById();
-//                case 5 -> cityViewer.loadAll();
+                case 3 -> cityViewer.deleteCity();
+                case 4 -> cityViewer.loadCityById();
+                case 5 -> cityViewer.loadAll();
                 case 6-> cityViewer.PrintListOfCitiesAndTheirTeams();
                 case 7 -> continueSelect = false;
 

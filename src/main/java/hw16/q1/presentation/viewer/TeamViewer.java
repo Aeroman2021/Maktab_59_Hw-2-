@@ -51,13 +51,14 @@ public class TeamViewer {
     }
 
 
-    public Team loadTeamById() {
+    public void loadTeamById() {
         int teamId = Input.getInputValue("Enter team id");
-        return teamManager.loadById(teamId);
+        System.out.println(teamManager.loadById(teamId));
 
     }
 
-    public List<Team> loadAll() {
-        return teamManager.loadAll();
+    public void loadAll() {
+        for (Team team : teamManager.loadAll())
+            System.out.println(team);
     }
 }

@@ -2,6 +2,8 @@ package hw16.q1.dao;
 
 import hw16.q1.entity.City;
 import hw16.q1.entity.Team;
+import hw16.q1.exception.DataNotFoundException;
+import hw16.q1.exception.DuplicateInputDataException;
 import hw16.q1.utility.EMFSigleton;
 
 
@@ -17,33 +19,60 @@ public class CityDao implements BaseDao<City, Integer> {
 
     EntityManager em = EMFSigleton.getEntityManager();
 
-    @Override
-    public void save(City entity) {
 
+    @Override
+    public void save(City city) {
+        if (!entityIsExist(city)) {
+            em.getTransaction().begin();
+            em.persist(city);
+            em.getTransaction().commit();
+        } else
+            throw new DuplicateInputDataException("The input Data is already exist in the data base! ");
     }
 
     @Override
-    public void update(City entity) {
-
+    public void update(City city) {
+        em.getTransaction().begin();
+        em.merge(city);
+        em.getTransaction().commit();
     }
 
     @Override
-    public void delete(Integer integer) {
-
+    public void delete(Integer id) {
+        em.getTransaction().begin();
+        City city= em.find(City.class, id);
+        if (city != null) {
+            em.remove(city);
+            em.getTransaction().commit();
+        } else
+            throw new DataNotFoundException("Data not found in the database");
     }
 
     @Override
-    public City loadById(Integer integer) {
-        return null;
+    public City loadById(Integer id) {
+        em.getTransaction().begin();
+        City city= em.find(City.class, id);
+        if (city != null) {
+            return city;
+        } else
+            throw new DataNotFoundException("Data not found in the database");
     }
 
     @Override
     public List<City> loadAll() {
-        return null;
+        TypedQuery<City> query = em.createNamedQuery("city.loadAll", City.class);
+        List<City> result = query.getResultList();
+        if (result != null)
+            return result;
+        else
+            throw new DataNotFoundException("Data not found in the database");
     }
 
     @Override
-    public boolean entityIsExist(City entity) {
+    public boolean entityIsExist(City city) {
+        for (City currentCity : loadAll())
+            if (currentCity.equals(city))
+                return true;
         return false;
     }
 

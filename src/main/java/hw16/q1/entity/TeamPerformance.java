@@ -5,7 +5,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "teams_performance")
-@NamedQuery(name = "teamPerformance.loadAll",query = " SELECT tp from TeamPerformance")
+@NamedQuery(name = "teamPerformance.loadAll",query = " SELECT tp from TeamPerformance tp")
 public class TeamPerformance implements BaseEntity<Integer> {
 
     @Id
