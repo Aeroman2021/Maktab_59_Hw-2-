@@ -5,7 +5,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "teams_performance")
-@NamedQuery(name = "teamPerformance.loadAll",query = " SELECT tp from TeamPerformance tp")
+@NamedQuery(name = "teamPerformance.loadAll",query = " SELECT tp FROM TeamPerformance tp")
 public class TeamPerformance implements BaseEntity<Integer> {
 
     @Id
@@ -80,7 +80,10 @@ public class TeamPerformance implements BaseEntity<Integer> {
         if (this == o) return true;
         if (!(o instanceof TeamPerformance)) return false;
         TeamPerformance that = (TeamPerformance) o;
-        return getTeam().equals(that.getTeam()) && getGoalScored().equals(that.getGoalScored()) && goalsReceived.equals(that.goalsReceived) && getPoint().equals(that.getPoint());
+        return getTeam().equals(that.getTeam()) &&
+                getGoalScored().equals(that.getGoalScored()) &&
+                goalsReceived.equals(that.goalsReceived) &&
+                getPoint().equals(that.getPoint());
     }
 
     @Override

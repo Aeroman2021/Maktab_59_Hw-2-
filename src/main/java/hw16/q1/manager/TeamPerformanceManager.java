@@ -6,7 +6,8 @@ import hw16.q1.entity.TeamPerformance;
 
 public class TeamPerformanceManager extends AbstractCrudService<TeamPerformance,Integer> {
 
-    public void TeamPerformanceManager() {
+
+    public TeamPerformanceManager() {
         setBaseDao(new TeamPerformanceDao());
     }
 

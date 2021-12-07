@@ -71,7 +71,6 @@ public class CoachDao implements BaseDao<Coach, Integer> {
         for (Coach currentCoach : loadAll())
             if (currentCoach.equals(coach))
                 return true;
-
         return false;
     }
 

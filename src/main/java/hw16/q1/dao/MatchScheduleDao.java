@@ -46,7 +46,7 @@ public class MatchScheduleDao implements BaseDao<MatchSchedule, Integer> {
     public MatchSchedule loadById(Integer id) {
         em.getTransaction().begin();
         MatchSchedule matchSchedule = em.find(MatchSchedule.class, id);
-        if (em.find(MatchSchedule.class, id) != null) {
+        if (matchSchedule != null) {
             return matchSchedule;
         } else
             throw new DataNotFoundException("Data not found in the database");

@@ -40,7 +40,7 @@ public class TeamPerformanceDao implements BaseDao<TeamPerformance, Integer> {
     public void delete(Integer id) {
         em.getTransaction().begin();
         TeamPerformance teamPerformance = em.find(TeamPerformance.class, id);
-        if (em.find(TeamPerformance.class, id) != null) {
+        if (teamPerformance!= null) {
             em.remove(teamPerformance);
             em.getTransaction().commit();
         } else
@@ -51,7 +51,7 @@ public class TeamPerformanceDao implements BaseDao<TeamPerformance, Integer> {
     public TeamPerformance loadById(Integer id) {
         em.getTransaction().begin();
         TeamPerformance teamPerformance = em.find(TeamPerformance.class, id);
-        if (em.find(TeamPerformance.class, id) != null) {
+        if (teamPerformance != null) {
             return teamPerformance;
         } else
             throw new DataNotFoundException("Data not found in the database");
@@ -104,9 +104,5 @@ public class TeamPerformanceDao implements BaseDao<TeamPerformance, Integer> {
         System.out.println("-------------------");
         System.out.println("The champion is " + objects.get(0)[0]);
     }
-
-
-
-
 
 }
